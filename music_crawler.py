@@ -21,6 +21,7 @@ s = f.read()
 subprocess.call('rm '+link, shell=True)
 atag = r'a class="pl-video-title-link yt-uix-tile-link yt-uix-sessionlink  spf-link " .* href="/(.*)" '
 links = re.findall(atag, s)
+print links[0]
 atag = r'a class="pl-video-title-link yt-uix-tile-link yt-uix-sessionlink  spf-link " .*\n(.*)\n.*/a.*'
 songs = re.findall(atag, s, re.MULTILINE);
 playlist = [{}]*(len(links))
@@ -30,3 +31,9 @@ for i in range(len(links)):
 	playlist[i]['song'] = songs[i].strip()
 	playlist[i]['link'] = links[i]
 	f.write(str(playlist[i])+'\n')
+
+yt = 'youtube-dl '
+yt1 = '"ytsearch:'
+
+for i in range(10):
+	subprocess.call(yt + site + '/' + links[i].replace('&amp;', '&'), shell=True)
