@@ -1,23 +1,31 @@
+#Import libraries
 import re
 import subprocess
 
+#Fetches data drom this website
 site = 'https://www.youtube.com'
+#Version to wget to get 
 wget = 'wget -q -o "log" -S '
+#Downloads only the audio version of YouTube-dl
 ytdl = 'youtube-dl -x  --audio-format "mp3" -o "'
-music_dir = '/home/hrishi/Music/Billboard HOT 100/'
+## Needs to be changed
+music_dir = '../../Music/Billboard HOT 100/'
 search_query = "Billboard HOT 100"
+#Variable number to get number of songs in the directory
 TOP = 3
 
 def getFileName(f):
 	''' Funcion to get shell safe file name '''
 	# TODO: add more unsafe characters
+	# NOTE: **Double Quoting** the characters also removes the unsafe character property  
 	return f.replace(' ','\ ').replace('(',"\(").replace(')','\)').replace('[','\[').replace(']','\]')
 
 print "Getting playlist..."
 
+
 # Query search
 search = 'results?search_query=' + search_query.replace(' ', '+')
-subprocess.call(wget+site+'/'+search, shell=True)
+subprocess.call(wget + site + '/' + search, shell=True)
 f = open(search, 'r')
 s = f.read();
 subprocess.call('rm '+ search, shell=True)
@@ -26,7 +34,7 @@ match = re.search(atag, s)
 
 # Load link
 link = match.group(1)
-subprocess.call(wget+site+'/'+link, shell=True)
+subprocess.call(wget + site + '/' + link, shell=True)
 f = open(link, 'r');
 s = f.read()
 subprocess.call('rm '+ link, shell=True)
@@ -40,7 +48,7 @@ for i in range(len(links)):
 	hashlink[songs[i]] = links[i]
 
 # Get old list and new list
-proc = subprocess.Popen('ls '+music_dir.replace(' ','\ '), stdout=subprocess.PIPE, shell=True)
+proc = subprocess.Popen('ls '+ music_dir.replace(' ','\ '), stdout = subprocess.PIPE, shell=True)
 oldlist = proc.stdout.read()
 oldlist = oldlist.split('.mp3\n')
 oldlist.remove('')
@@ -62,5 +70,5 @@ for song in new_songs:
 	else:
 		print "[Error]"
 
-if len(new_songs)+len(old_songs) == 0:
+if len(new_songs) + len(old_songs) == 0:
 	print "Playlist up-to-date"
