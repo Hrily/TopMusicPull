@@ -1,24 +1,28 @@
 #Import libraries
 import re
 import subprocess
+import HTMLParser
+import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
 
 #Fetches data drom this website
 site = 'https://www.youtube.com'
 #Version to wget to get 
 wget = 'wget -q -o "log" -S '
 #Downloads only the audio version of YouTube-dl
-ytdl = 'youtube-dl -x  --audio-format "mp3" -o "'
+ytdl = 'youtube-dl --abort-on-error -x  --audio-format "mp3" -o "'
 ## Needs to be changed
-music_dir = '../../Music/Billboard HOT 100/'
+music_dir = '/home/hrishi/Music/Billboard HOT 100/'
 search_query = "Billboard HOT 100"
 #Variable number to get number of songs in the directory
-TOP = 3
+TOP = 30
 
 def getFileName(f):
 	''' Funcion to get shell safe file name '''
 	# TODO: add more unsafe characters
 	# NOTE: **Double Quoting** the characters also removes the unsafe character property  
-	return f.replace(' ','\ ').replace('(',"\(").replace(')','\)').replace('[','\[').replace(']','\]')
+	return f.replace(' ','\ ').replace('(','\(').replace(')','\)').replace('[','\[').replace(']','\]').replace('&','\&')
 
 print "Getting playlist..."
 
@@ -44,7 +48,8 @@ atag = r'a class="pl-video-title-link yt-uix-tile-link yt-uix-sessionlink  spf-l
 songs = re.findall(atag, s, re.MULTILINE);
 hashlink = {}
 for i in range(len(links)):
-	songs[i] = songs[i].strip();	
+	songs[i] = html.unescape(songs[i].strip()).replace('"', '')
+	links[i] = html.unescape(links[i])
 	hashlink[songs[i]] = links[i]
 
 # Get old list and new list
@@ -58,12 +63,13 @@ new_songs = list(set(songs[0:TOP]) - set(oldlist))
 # Remove Old songs not in list
 for song in old_songs:
 	subprocess.call('rm '+ music_dir.replace(' ','\ ') + getFileName(song) + '.*', shell=True)
-	print "Removed : " + song
+	print "Removed  : " + song
 
 # Fetch new songs not in list
 for song in new_songs:
 	print "Fetching : " + song
-	proc = subprocess.Popen(ytdl + music_dir + song + '.%(ext)s" ' + site + hashlink[song].replace('&amp;', '&'), stdout=subprocess.PIPE, shell=True)
+	proc = subprocess.Popen(ytdl + music_dir + song + '.%(ext)s" ' + site + hashlink[song], stdout=subprocess.PIPE, shell=True)
+	#proc.wait()
 	out = proc.communicate()[0]
 	if "100%" in out:
 		print "[DONE]"
