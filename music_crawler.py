@@ -16,10 +16,41 @@ ytdl = 'youtube-dl --abort-on-error -x  --audio-format "mp3" -o '
 music_dir = '~/Music/"Billboard HOT 100"/'
 search_query = "Billboard HOT 100"
 # Variable number to get number of songs in the directory
-TOP = 20
+TOP = 10
+# HTML Parser
 html = HTMLParser.HTMLParser()
 
+def get_metadata(song):
+	''' Function to get Artist,Title from song name '''
+	extra = re.compile(r'((\[|\()official(\]|\))*)|((\[|\()*lyric(s)*(\]|\))*)|((\[|\()*video(\]|\)))|((\[|\()*music video(\]|\)))|((\[|\()*audio(\]|\))*)', re.I)
+	ft = re.compile(r'(\()*(ft.|feat.)(.*)(\))*', re.I)
+	album_re = re.compile(r'\(from (.*)\)', re.I)
+	title = ''
+	artist = ''
+	album = ''
+	song = re.sub(extra, '', song)
+	# Extract Album name
+	album_g = re.search(album_re, song)
+	song = re.sub(album_re, '', song)
+	if album_g is not None:
+		album = album_g.group(1)
+	# Extract Title and Artist	
+	meta = re.split(r'(:|-|~)', song)
+	title = meta[0]
+	if len(meta) >= 3:
+		title = meta[2]
+		artist = meta[0]
+		# Extract ft
+		feature = re.search(ft, title)
+		title = re.sub(ft, '', title)
+		if feature is not None:
+			artist = artist.strip() + ' ' + feature.group()
+	return [title.strip(), artist.strip(), album.strip()]
+
 print "Getting playlist..."
+
+# Make the music directory if not available
+subprocess.Popen('mkdir -p ' + music_dir, shell = True)
 
 # Query search
 search = 'results?search_query=' + search_query.replace(' ', '+')
@@ -50,7 +81,8 @@ for i in range(len(links)):
 proc = subprocess.Popen('ls '+ music_dir, stdout = subprocess.PIPE, shell = True)
 oldlist = proc.stdout.read()
 oldlist = oldlist.split('.mp3\n')
-oldlist.remove('')
+if '' in oldlist:
+	oldlist.remove('')
 old_songs = list(set(oldlist) - set(songs[0:TOP]))
 new_songs = list(set(songs[0:TOP]) - set(oldlist))
 
@@ -65,16 +97,25 @@ for song in old_songs:
 	subprocess.Popen('rm '+ music_dir + '"' + song + '.mp3"', shell = True)
 	print "Removed  : " + song
 
-# Fetch new songs not in list
-for song in new_songs:
-	print "Fetching : " + song
-	proc = subprocess.Popen(ytdl + music_dir + '"' + song + '.%(ext)s" ' + site + hashlink[song], stdout=subprocess.PIPE, shell = True)
-	#proc.wait()
-	out = proc.communicate()[0]
-	if "100%" in out:
-		print "[DONE]"
-	else:
-		print "[Error]"
+for i in range(TOP):
+	song = songs[i]
+	if song in new_songs:
+		# Fetch new songs not in playlist
+		print "Fetching : " + song
+		proc = subprocess.Popen(ytdl + music_dir + '"' + song + '.%(ext)s" ' + site + hashlink[song], stdout=subprocess.PIPE, shell = True)
+		#proc.wait()
+		out = proc.communicate()[0]
+		if "100%" in out:
+			print "[DONE]\nSetting id3 tags"
+			[title, artist, album] = get_metadata(song)
+			# Set metadata of the song
+			subprocess.Popen('mid3v2 ' + music_dir + '"' + song + '.mp3" -t "' + title + '" -a "' + artist + '"', shell = True)
+			print "[DONE]"
+		else:
+			print "[Error]"
+			continue
+	# Update song rank
+	subprocess.Popen('mid3v2 ' + music_dir + '"' + song + '.mp3" -T "' + str(i+1) + '"', shell = True)
 
 if len(new_songs) + len(old_songs) == 0:
 	print "Playlist up-to-date"
