@@ -9,14 +9,14 @@ sys.setdefaultencoding('utf-8')
 # Fetches data drom this website
 site = 'https://www.youtube.com'
 # Version to wget to get 
-wget = 'wget -q -o "log" -S '
+wget = 'wget -q -O "result" -o "log" -S '
 # Downloads only the audio version of YouTube-dl
 ytdl = 'youtube-dl --abort-on-error -x  --audio-format "mp3" -o '
 # Needs to be changed
-music_dir = '~/Music/"Billboard HOT 100"/'
-search_query = "Billboard HOT 100"
+music_dir = '~/Music/"Vidya Vox"/'
+search_query = "Popular Videos | Vidya Vox"
 # Variable number to get number of songs in the directory
-TOP = 10
+TOP = 30
 # HTML Parser
 html = HTMLParser.HTMLParser()
 
@@ -54,17 +54,17 @@ subprocess.Popen('mkdir -p ' + music_dir, shell = True)
 
 # Query search
 search = 'results?search_query=' + search_query.replace(' ', '+')
-subprocess.call(wget + site + '/' + search, shell = True)
-f = open(search, 'r')
+subprocess.call(wget + '"' + site + '/' + search + '"', shell = True)
+f = open("result", 'r')
 s = f.read();
-subprocess.call('rm '+ search, shell = True)
-atag = r'a href=.* class="yt-uix-sessionlink yt-uix-tile-link yt-ui-ellipsis yt-ui-ellipsis-2       spf-link " .* title="Billboard HOT 100 .* href="/(.*)" class=" yt-uix-sessionlink      spf-link " .*View full playlist'
+#subprocess.call('rm '+ search, shell = True)
+atag = r'a href=.* class="yt-uix-sessionlink yt-uix-tile-link yt-ui-ellipsis yt-ui-ellipsis-2       spf-link " .* title="' + search_query.replace('|', '\|') + '" .* href="/(.*)" class=" yt-uix-sessionlink      spf-link " .*View full playlist'
 match = re.search(atag, s)
 
 # Load link
 link = match.group(1)
 subprocess.call(wget + site + '/' + link, shell = True)
-f = open(link, 'r');
+f = open("result", 'r');
 s = f.read()
 subprocess.call('rm '+ link, shell = True)
 atag = r'a class="pl-video-title-link yt-uix-tile-link yt-uix-sessionlink  spf-link " .* href="(.*)" '
