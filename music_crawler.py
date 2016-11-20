@@ -16,30 +16,39 @@ ytdl = 'youtube-dl --abort-on-error -x --audio-format "mp3" -o '
 music_dir = '~/Music/'
 dir_name = ''
 search_query = ''
-music_dir = music_dir + '/"' + dir_name + '/"'
 # Variable number to get number of songs in the directory
-TOP = 10
+TOP = 1000
 # HTML Parser
 html = HTMLParser.HTMLParser()
 # Regex escape char replace
 re_escape = r'\.|\$|\^|\{|\[|\(|\||\)|\]|\}|\*|\+|\?|\\|\'|\"'
 # USAGE
-usage = 'USAGE : python music_crawler.py "PLAYLIST NAME" "FOLDER NAME"'
+# TODO: Think of good name
+usage = 'USAGE : music_crawler "PLAYLIST NAME" "FOLDER NAME" TOPNUMBER\n\nArguments:\n    "PLAYLIST NAME"\t: Name of the playlist (qoutes required!)\n    "FOLDER NAME"\t: Folder to download\n    TOPNUMBER\t\t: Integer, Number of videos to download starting from top\n    -h\t\t\t: Show this help'
 
 # Extract query and folder name from command line
-# TODO: update USAGE
 if len(sys.argv) == 1:
 	print usage
-	exit()
+	sys.exit()
 elif len(sys.argv) == 2:
-	print 'music_crawler : no input folder name'
-	exit()
+	if '-h' in sys.argv[1]:
+		print usage
+	else:
+		print 'music_crawler : no input folder name'
+	sys.exit()
+elif len(sys.argv) == 4:
+	try:
+		TOP = int(sys.argv[3])
+	except:
+		print 'music_crawler : invalid input TOP number'
+		sys.exit()
 elif len(sys.argv) > 3:
 	print usage
-	exit()
+	sys.exit()
 
-search_query = sys.argv[1]
-dir_name =  sys.argv[2]
+search_query = sys.argv[1].strip()
+dir_name =  sys.argv[2].strip()
+music_dir = music_dir + '"' + dir_name + '/"'
 
 def get_metadata(song):
 	''' Function to get Artist,Title from song name '''
@@ -84,14 +93,15 @@ match = re.search(atag, s)
 
 if match is None or match.group(1) is None:
 	print '[Error] : Cannot find the playlist - ' + search_query
-	exit()
+	sys.exit()
 
 # Load link
 link = match.group(1)
 subprocess.call(wget + '"' + site + '/' + link + '"', shell = True)
 f = open('result', 'r');
 s = f.read()
-#subprocess.call('rm result', shell = True)
+subprocess.call('rm result', shell = True)
+subprocess.call('rm log', shell = True)
 atag = r'a class="pl-video-title-link yt-uix-tile-link yt-uix-sessionlink  spf-link " .* href="(.*)" '
 links = re.findall(atag, s)
 atag = r'a class="pl-video-title-link yt-uix-tile-link yt-uix-sessionlink  spf-link " .*\n(.*)\n.*/a.*'
@@ -106,14 +116,19 @@ for i in range(min(3, len(songs))):
 	print '\t'+songs[i]
 yn = raw_input('Download? (Y/n) ')
 if yn != 'y' and yn != 'Y':
-	exit()
+	sys.exit()
 
 # Create safe links and song names, Hash the links to song names
-hashlink = {}
 for i in range(len(links)):
-	songs[i] = html.unescape(songs[i].strip()).replace('"', '')
+	songs[i] = html.unescape(songs[i].strip()).replace('"', '').replace('/','').replace('$', 'S').replace('`', '');
+	[title, artist, album] = get_metadata(songs[i])
+	songs[i] = title
+	if len(artist) > 0:
+		songs[i] = title + ' - ' + artist
+	songs[i] = songs[i].encode('utf-8')
 	links[i] = html.unescape(links[i])
-	hashlink[songs[i]] = links[i]
+
+TOP = min(TOP, len(songs))
 
 # Get old list and new list
 proc = subprocess.Popen('ls '+ music_dir, stdout = subprocess.PIPE, shell = True)
@@ -124,26 +139,23 @@ if '' in oldlist:
 old_songs = list(set(oldlist) - set(songs[0:TOP]))
 new_songs = list(set(songs[0:TOP]) - set(oldlist))
 
-# Sometime double check is required
-for song in new_songs:
-	if song in oldlist:
-		new_songs.remove(song)
-		old_songs.remove(song)
-
 # Remove Old songs not in list
-print 'Found ' + str(len(old_songs)) + ' old song(s)'
-yn = raw_input('Remove Old songs not in list? (Y/n) ')
-if yn == 'y' or yn == 'Y':
-	for song in old_songs:
-		subprocess.Popen('rm '+ music_dir + '"' + song + '.mp3"', shell = True)
-		print 'Removed  : ' + song
+if len(old_songs) > 0:
+	print 'Found ' + str(len(old_songs)) + ' old song(s)'
+	yn = raw_input('Remove Old songs not in list? (Y/n) ')
+	if yn == 'y' or yn == 'Y':
+		for song in old_songs:
+			song = song.replace('/','').replace('$', 'S').replace('`', '');
+			subprocess.Popen('rm '+ music_dir + '"' + song + '.mp3"', shell = True)
+			print 'Removed  : ' + song
 
 for i in range(TOP):
 	song = songs[i]
 	if song in new_songs:
+		song = song.replace('/','').replace('$', 'S').replace('`', '');
 		# Fetch new songs not in playlist
 		print 'Fetching : ' + song
-		proc = subprocess.Popen(ytdl + music_dir + '"' + song + '.%(ext)s" ' + site + hashlink[song], stdout=subprocess.PIPE, shell = True)
+		proc = subprocess.Popen(ytdl + music_dir + '"' + song + '.%(ext)s" ' + site + links[i], stdout=subprocess.PIPE, shell = True)
 		#proc.wait()
 		out = proc.communicate()[0]
 		if "100%" in out:
@@ -156,6 +168,7 @@ for i in range(TOP):
 			print 'youtube-dl : [Error]'
 			continue
 	# Update song rank
+	song = song.replace('/','').replace('$', 'S').replace('`', '');
 	subprocess.Popen('mid3v2 ' + music_dir + '"' + song + '.mp3" -T "' + str(i+1) + '"', shell = True)
 
 if len(new_songs) + len(old_songs) == 0:
