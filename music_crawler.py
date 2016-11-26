@@ -9,7 +9,7 @@ sys.setdefaultencoding('utf-8')
 # Fetches data drom this website
 site = 'https://www.youtube.com'
 # Version to wget to get 
-wget = 'wget -q -O "result" -o "log" -S '
+wget = 'wget -q -O /tmp/result -o /tmp/log -S '
 # Downloads only the audio version of YouTube-dl
 ytdl = 'youtube-dl --abort-on-error -x --audio-format "mp3" -o '
 # Needs to be changed
@@ -85,7 +85,7 @@ subprocess.Popen('mkdir -p ' + music_dir, shell = True)
 # Query search
 search = 'results?search_query=' + search_query.replace(' ', '+')
 subprocess.call(wget + '"' +  site + '/' + search + '"', shell = True)
-f = open('result', 'r')
+f = open('/tmp/result', 'r')
 s = f.read();
 s = html.unescape(s)
 atag = r'a href=.* class="yt-uix-sessionlink yt-uix-tile-link yt-ui-ellipsis yt-ui-ellipsis-2       spf-link " .* title="' + re.sub(re_escape, '.', search_query) + '.* href="/(.*)" class=" yt-uix-sessionlink      spf-link " .*View full playlist'
@@ -98,10 +98,10 @@ if match is None or match.group(1) is None:
 # Load link
 link = match.group(1)
 subprocess.call(wget + '"' + site + '/' + link + '"', shell = True)
-f = open('result', 'r');
+f = open('/tmp/result', 'r');
 s = f.read()
-subprocess.call('rm result', shell = True)
-subprocess.call('rm log', shell = True)
+subprocess.call('rm /tmp/result', shell = True)
+subprocess.call('rm /tmp/log', shell = True)
 atag = r'a class="pl-video-title-link yt-uix-tile-link yt-uix-sessionlink  spf-link " .* href="(.*)" '
 links = re.findall(atag, s)
 atag = r'a class="pl-video-title-link yt-uix-tile-link yt-uix-sessionlink  spf-link " .*\n(.*)\n.*/a.*'
@@ -119,9 +119,13 @@ if yn != 'y' and yn != 'Y':
 	sys.exit()
 
 # Create safe links and song names, Hash the links to song names
+titles  = [None]*len(songs)
+artists = [None]*len(songs)
 for i in range(len(links)):
 	songs[i] = html.unescape(songs[i].strip()).replace('"', '').replace('/','').replace('$', 'S').replace('`', '');
 	[title, artist, album] = get_metadata(songs[i])
+	titles[i] = title
+	artists[i] = artist
 	songs[i] = title
 	if len(artist) > 0:
 		songs[i] = title + ' - ' + artist
@@ -156,13 +160,11 @@ for i in range(TOP):
 		# Fetch new songs not in playlist
 		print 'Fetching : ' + song
 		proc = subprocess.Popen(ytdl + music_dir + '"' + song + '.%(ext)s" ' + site + links[i], stdout=subprocess.PIPE, shell = True)
-		#proc.wait()
 		out = proc.communicate()[0]
 		if "100%" in out:
 			print '[DONE]\nSetting id3 tags'
-			[title, artist, album] = get_metadata(song)
 			# Set metadata of the song
-			subprocess.Popen('mid3v2 ' + music_dir + '"' + song + '.mp3" -t "' + title + '" -a "' + artist + '"', shell = True)
+			subprocess.Popen('mid3v2 ' + music_dir + '"' + song + '.mp3" -t "' + titles[i] + '" -a "' + artists[i] + '"', shell = True)
 			print '[DONE]'
 		else:
 			print 'youtube-dl : [Error]'
