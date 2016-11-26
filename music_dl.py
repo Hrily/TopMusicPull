@@ -8,7 +8,7 @@ sys.setdefaultencoding('utf-8')
 
 # Fetches data drom this website
 site = 'https://www.youtube.com'
-# Version to wget to get 
+# Version to wget to get
 wget = 'wget -q -O "result" -o "log" -S '
 # Downloads only the audio version of YouTube-dl
 ytdl = 'youtube-dl --abort-on-error -x --audio-format "mp3" -o '
@@ -24,7 +24,7 @@ html = HTMLParser.HTMLParser()
 re_escape = r'\.|\$|\^|\{|\[|\(|\||\)|\]|\}|\*|\+|\?|\\|\'|\"'
 # USAGE
 # TODO: Think of good name
-usage = 'USAGE : music_crawler "PLAYLIST NAME" "FOLDER NAME" TOPNUMBER\n\nArguments:\n    "PLAYLIST NAME"\t: Name of the playlist (qoutes required!)\n    "FOLDER NAME"\t: Folder to download\n    TOPNUMBER\t\t: Integer, Number of videos to download starting from top\n    -h\t\t\t: Show this help'
+usage = 'USAGE : music_dl "PLAYLIST NAME" "FOLDER NAME" TOPNUMBER\n\nArguments:\n    "PLAYLIST NAME"\t: Name of the playlist (qoutes required!)\n    "FOLDER NAME"\t: Folder to download\n    TOPNUMBER\t\t: Integer, Number of videos to download starting from top\n    -h\t\t\t: Show this help'
 
 # Extract query and folder name from command line
 if len(sys.argv) == 1:
@@ -34,13 +34,13 @@ elif len(sys.argv) == 2:
 	if '-h' in sys.argv[1]:
 		print usage
 	else:
-		print 'music_crawler : no input folder name'
+		print 'music_dl : no input folder name'
 	sys.exit()
 elif len(sys.argv) == 4:
 	try:
 		TOP = int(sys.argv[3])
 	except:
-		print 'music_crawler : invalid input TOP number'
+		print 'music_dl : invalid input TOP number'
 		sys.exit()
 elif len(sys.argv) > 3:
 	print usage
@@ -64,7 +64,7 @@ def get_metadata(song):
 	song = re.sub(album_re, '', song)
 	if album_g is not None:
 		album = album_g.group(1)
-	# Extract Title and Artist	
+	# Extract Title and Artist
 	meta = re.split(r'(:|-|~)', song)
 	title = meta[0]
 	if len(meta) >= 3:

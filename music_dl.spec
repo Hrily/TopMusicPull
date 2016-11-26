@@ -3,7 +3,7 @@
 block_cipher = None
 
 
-a = Analysis(['music_crawler.py'],
+a = Analysis(['music_dl.py'],
              pathex=['/home/hrishi/Music/TopMusicPull'],
              binaries=None,
              datas=None,
