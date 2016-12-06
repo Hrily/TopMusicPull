@@ -1,19 +1,19 @@
 #!/bin/bash
 
 #First update the given System
-#sudo apt-get update
+sudo apt-get update
 #Install Python pip to install Python based dependencies
-#sudo apt-get install python-pip
+sudo apt-get install python-pip
 
 
 #Refresh to update
-#sudo apt-get update
+sudo apt-get update
 #Install the youtube-dl dependency
-#pip install youtube-dl
+pip install youtube-dl
 #Install Python Installer
-#pip install PyInstaller
+pip install PyInstaller
 #Install mid3v2
-#pip install mutagen
+pip install mutagen
 
 #Move the Binary compiled file to the bin folder
 cd dist/music_crawler
