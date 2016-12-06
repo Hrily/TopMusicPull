@@ -18,13 +18,13 @@ $ cd TopMusicPull
 
 To install PyInstaller:
 ```
-$ sudo sudo apt-get install python-pip
+$ sudo apt-get install python-pip
 $ sudo pip install PyInstaller
 ```
 
 To install mid3v2:
 ```
-$ sudo sudo apt-get install python-pip
+$ sudo apt-get install python-pip
 $ sudo pip install mutagen
 ```
 
@@ -50,7 +50,3 @@ After that all you need to do is go to the Music Folder and find all the songs o
 ## License
 
 - The software is registered under the [MIT License](https://github.com/hrily/TopMusicPull/blob/master/LICENSE)
-
-
-
-
