@@ -24,7 +24,7 @@ html = HTMLParser.HTMLParser()
 re_escape = r'\.|\$|\^|\{|\[|\(|\||\)|\]|\}|\*|\+|\?|\\|\'|\"'
 # USAGE
 # TODO: Think of good name
-usage = 'USAGE : music_crawler "PLAYLIST NAME" "FOLDER NAME" TOPNUMBER\n\nArguments:\n    "PLAYLIST NAME"\t: Name of the playlist (qoutes required!)\n    "FOLDER NAME"\t: Folder to download\n    TOPNUMBER\t\t: Integer, Number of videos to download starting from top\n    -h\t\t\t: Show this help'
+usage = 'USAGE : music_crawler "PLAYLIST NAME" "FOLDER NAME" TOPNUMBER\n\nArguments:\n    "PLAYLIST NAME"\t: Name of the playlist (quotes required!)\n    "FOLDER NAME"\t: Folder to download\n    TOPNUMBER\t\t: Integer, Number of videos to download starting from top\n    -h\t\t\t: Show this help'
 
 # Extract query and folder name from command line
 if len(sys.argv) == 1:
